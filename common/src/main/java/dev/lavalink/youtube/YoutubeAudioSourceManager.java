@@ -167,13 +167,16 @@ public class YoutubeAudioSourceManager implements AudioSourceManager {
      *                           refresh token later. This only applies on null/empty/invalid refresh tokens.
      *                           Valid refresh tokens will not be presented with an initialization prompt.
      */
-    public void useOauth2(@Nullable String refreshToken, boolean skipInitialization) {
-        oauth2Handler.setRefreshToken(refreshToken, skipInitialization);
+    public void useOauth2(String refreshToken, boolean skipInitialization) {
+        oauth2Handler.addRefreshToken(refreshToken);
     }
 
-    @Nullable
     public String getOauth2RefreshToken() {
-        return oauth2Handler.getRefreshToken();
+        return oauth2Handler.getAccountRefreshTokens().stream().findFirst().orElse(null);
+    }
+
+    public List<String> getOauth2RefreshTokens() {
+        return oauth2Handler.getAccountRefreshTokens();
     }
 
     @Override
