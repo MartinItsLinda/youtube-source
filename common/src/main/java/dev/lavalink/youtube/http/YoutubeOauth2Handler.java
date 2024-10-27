@@ -280,13 +280,15 @@ public class YoutubeOauth2Handler {
                     throw new RuntimeException("Refreshing access token returned error " + parsed.getString("error"));
                 }
 
+                log.info("Parsed json {}", parsed);
+
                 long tokenLifespan = parsed.getLong("expires_in");
                 account.setTokenType(parsed.getString("token_type"));
                 account.setAccessToken(parsed.getString("access_token"));
                 account.setRefreshToken(parsed.getString("refresh_token", refreshToken));
                 account.setTokenExpires(System.currentTimeMillis() + (tokenLifespan * 1000) - 60000);
 
-                log.info("YouTube access token refreshed successfully");
+                log.info("YouTube access token refreshed successfully, expires in {} seconds", tokenLifespan);
             } catch (IOException | JsonParserException e) {
                 throw ExceptionTools.toRuntimeException(e);
             }
@@ -310,12 +312,12 @@ public class YoutubeOauth2Handler {
             return;
         }
 
-        int index = accountIndex.get();
+        int index = accountIndex.incrementAndGet();
         YoutubeOauth2Account account = oauth2Accounts.get(index);
 
         accountIndex.set((index % oauth2Accounts.size()));
 
-        if (account.tokenExpires >= System.currentTimeMillis()) {
+        if (account.tokenExpires <= System.currentTimeMillis()) {
             log.debug("Access token has expired, refreshing...");
 
             try {
