@@ -20,6 +20,7 @@ public class YoutubeHttpContextFilter extends BaseYoutubeHttpContextFilter {
   private static final String ATTRIBUTE_RESET_RETRY = "isResetRetry";
   public static final String ATTRIBUTE_USER_AGENT_SPECIFIED = "clientUserAgent";
   public static final String ATTRIBUTE_VISITOR_DATA_SPECIFIED = "clientVisitorData";
+  public static final String ATTRIBUTE_OAUTH_ACCOUNT = "oauthAccount";
 
   private static final HttpContextRetryCounter retryCounter = new HttpContextRetryCounter("yt-token-retry");
 
@@ -79,7 +80,13 @@ public class YoutubeHttpContextFilter extends BaseYoutubeHttpContextFilter {
         context.removeAttribute(ATTRIBUTE_USER_AGENT_SPECIFIED);
       }
 
-      oauth2Handler.applyToken(request);
+      YoutubeOauth2Account account = context.getAttribute(ATTRIBUTE_OAUTH_ACCOUNT, YoutubeOauth2Account.class);
+      if (account == null) {
+        account = oauth2Handler.getNextAccount();
+        context.setAttribute(ATTRIBUTE_OAUTH_ACCOUNT, account);
+      }
+
+      oauth2Handler.applyToken(account, request);
     }
 
 //    try {
